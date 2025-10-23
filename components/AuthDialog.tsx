@@ -23,8 +23,6 @@ export default function AuthDialog({
   const [error, setError] = useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError("");
     const data = getFormData(e as any);
 
     if (isSignUp) {
