@@ -8,8 +8,11 @@ import {
   toggleCompleted,
   addCategory,
   updateTaskCategory,
+  signOut,
 } from "@/app/actions";
 import { getFormData } from "zvijude/form/funcs";
+import { useState } from "react";
+import AuthDialog from "./AuthDialog";
 
 interface Todo {
   id: number;
@@ -24,10 +27,13 @@ interface Todo {
 export default function TodosComp({
   todos = [],
   categories = [],
+  currentUser = null,
 }: {
   todos?: Todo[];
   categories?: any[];
+  currentUser?: any;
 }) {
+  const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const makeOptions = (extra = true) => (
     <>
       {extra && <option value="">General</option>}
@@ -57,9 +63,41 @@ export default function TodosComp({
     e.target.reset();
   }
 
+  async function handleToggleCompleted(id: number, completed: boolean) {
+    await toggleCompleted(id, completed);
+  }
+
+  async function handleDeleteTask(id: number) {
+    await deleteTask(id);
+  }
+
   return (
     <main className="p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Create Todo</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Create Todo</h1>
+        <div className="flex gap-2 items-center">
+          {currentUser ? (
+            <>
+              <span className="text-sm text-gray-600">
+                Hello, {currentUser.username}
+              </span>
+              <Btn
+                onClick={() => signOut()}
+                lbl="Sign Out"
+                className="bg-gray-500 hover:bg-gray-600"
+              />
+            </>
+          ) : (
+            <Btn
+              onClick={() => setAuthDialogOpen(true)}
+              lbl="Sign Up"
+              className="bg-blue-500 hover:bg-blue-600"
+            />
+          )}
+        </div>
+      </div>
+
+      <AuthDialog open={authDialogOpen} onOpenChange={setAuthDialogOpen} />
 
       <form onSubmit={handleAddTask} className="space-y-3 mb-8">
         <Input name="text" lbl="Todo" placeholder="Enter task..." required />
@@ -100,7 +138,7 @@ export default function TodosComp({
                       }`}
                     >
                       <Btn
-                        onClick={() => toggleCompleted(id, completed)}
+                        onClick={() => handleToggleCompleted(id, completed)}
                         lbl={completed ? "✓" : "○"}
                         className={`w-8 h-8 text-sm ${
                           completed ? "bg-green-500 text-white" : "bg-gray-200"
@@ -126,7 +164,7 @@ export default function TodosComp({
                       </select>
 
                       <Btn
-                        onClick={() => deleteTask(id)}
+                        onClick={() => handleDeleteTask(id)}
                         lbl="×"
                         className="bg-red-500 text-white w-8 h-8"
                       />
